@@ -4,9 +4,7 @@ using System.Data.SqlClient;
 using System.Text;
 using System.Web.UI;
 using System.Linq;
-using System.Web.UI.WebControls;
 using System.Configuration;
-
 
 namespace DAAAOrgchart
 {
@@ -17,7 +15,6 @@ namespace DAAAOrgchart
             if (!IsPostBack)
             {
                 GenerateOrganigramma();
-                //organigrammaDiv.InnerHtml = html;
             }
         }
 
@@ -28,7 +25,7 @@ namespace DAAAOrgchart
 
             var hierarchy = new Dictionary<string, List<Department>>();
 
-            // Costruzione gerarchia
+            // 🔹 Costruzione gerarchia
             foreach (var dept in departments)
             {
                 string parentKey = string.IsNullOrEmpty(dept.ParentId) ? "root" : dept.ParentId;
@@ -39,23 +36,32 @@ namespace DAAAOrgchart
             }
 
             var sb = new StringBuilder();
+            sb.Append("<ul class='tree'>");
 
-            // Nodo root (Direttore = ID 11)
+            // 🔹 Nodo root (Direttore = ID 11)
             if (hierarchy.ContainsKey("11"))
             {
                 foreach (var rootDept in hierarchy["11"])
                     BuildTreeHTML(rootDept, hierarchy, staff, sb);
             }
 
+            sb.Append("</ul>");
             OrganigrammaLiteral.Text = sb.ToString();
         }
 
-        private void BuildTreeHTML(Department dept, Dictionary<string, List<Department>> hierarchy, List<StaffMember> staff, StringBuilder sb)
+        private void BuildTreeHTML(Department dept, Dictionary<string, List<Department>> hierarchy,
+                                   List<StaffMember> staff, StringBuilder sb)
         {
-            sb.Append("<ul>");
-            sb.AppendFormat("<li><strong>{0}</strong>", dept.Name);
+            sb.Append("<li>");
+            sb.AppendFormat("<strong>{0}</strong>", dept.Name);
 
-            // Persone collegate a questo dipartimento
+            // 🔹 Mostra il responsabile se presente
+            if (!string.IsNullOrEmpty(dept.ManagerFullName))
+            {
+                sb.AppendFormat("<div class='person'><b>Responsabile:</b> {0}</div>", dept.ManagerFullName);
+            }
+
+            // 🔹 Personale collegato a questo dipartimento
             var assigned = staff.Where(s => s.DepartmentId == dept.Id).ToList();
             if (assigned.Any())
             {
@@ -67,16 +73,19 @@ namespace DAAAOrgchart
                 sb.Append("</ul>");
             }
 
-            // Sotto-nodi
+            // 🔹 Sotto-nodi
             if (hierarchy.ContainsKey(dept.Id))
             {
+                sb.Append("<ul>");
                 foreach (var child in hierarchy[dept.Id])
                     BuildTreeHTML(child, hierarchy, staff, sb);
+                sb.Append("</ul>");
             }
 
-            sb.Append("</li></ul>");
+            sb.Append("</li>");
         }
 
+        // 🔹 Carica i dipartimenti con il responsabile
         private List<Department> LoadDepartments()
         {
             var list = new List<Department>();
@@ -85,17 +94,38 @@ namespace DAAAOrgchart
             using (var conn = new SqlConnection(connStr))
             {
                 conn.Open();
-                string query = "SELECT id, parent_id, name FROM vOrganigrammaCompleto"; // puoi usare la query diretta se non hai la vista
+
+                // 🔸 vOrganigrammaCompleto deve avere: id, parent_id, name, manager_id
+                string query = @"
+                    SELECT 
+                        v.id, 
+                        v.parent_id, 
+                        v.name,
+                        v.manager_id,
+                        p.Nome AS ManagerNome,
+                        p.Cognome AS ManagerCognome
+                    FROM vOrganigrammaCompleto v
+                    LEFT JOIN ElencoPersonale p ON p.IDPersonale = v.manager_id
+                    WHERE p.Stato_Servizio = 'Attivo' OR v.manager_id IS NULL
+                    ORDER BY v.id;";
+
                 using (var cmd = new SqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
+                        string nome = reader["ManagerNome"] == DBNull.Value ? "" : reader["ManagerNome"].ToString();
+                        string cognome = reader["ManagerCognome"] == DBNull.Value ? "" : reader["ManagerCognome"].ToString();
+
                         list.Add(new Department
                         {
                             Id = reader["id"].ToString(),
                             ParentId = reader["parent_id"] == DBNull.Value ? null : reader["parent_id"].ToString(),
-                            Name = reader["name"].ToString()
+                            Name = reader["name"].ToString(),
+                            ManagerId = reader["manager_id"] == DBNull.Value ? null : reader["manager_id"].ToString(),
+                            ManagerFullName = (!string.IsNullOrEmpty(nome) || !string.IsNullOrEmpty(cognome))
+                                ? $"{nome} {cognome}"
+                                : null
                         });
                     }
                 }
@@ -104,6 +134,7 @@ namespace DAAAOrgchart
             return list;
         }
 
+        // 🔹 Carica il personale (già ok)
         private List<StaffMember> LoadStaff()
         {
             var list = new List<StaffMember>();
@@ -114,19 +145,18 @@ namespace DAAAOrgchart
                 conn.Open();
 
                 string query = @"
-            SELECT 
-                CONCAT(
-                    CAST(ISNULL(i.ID_Uff1, '') AS NVARCHAR(50)),
-                    CASE WHEN i.ID_Uff2 IS NOT NULL THEN '_' + CAST(i.ID_Uff2 AS NVARCHAR(50)) ELSE '' END,
-                    CASE WHEN i.ID_Uff3 IS NOT NULL THEN '_' + CAST(i.ID_Uff3 AS NVARCHAR(50)) ELSE '' END
-                ) AS department_id,
-                i.IDPersonale AS person_id,
-                p.Cognome + ' ' + p.Nome AS full_name,
-                i.id_incarico AS role
-            FROM Incarichi i
-            INNER JOIN ElencoPersonale p ON p.IDPersonale = i.IDPersonale
-            WHERE p.Stato_Servizio = 'Attivo';
-        ";
+                    SELECT 
+                        CONCAT(
+                            CAST(ISNULL(i.ID_Uff1, '') AS NVARCHAR(50)),
+                            CASE WHEN i.ID_Uff2 IS NOT NULL THEN '_' + CAST(i.ID_Uff2 AS NVARCHAR(50)) ELSE '' END,
+                            CASE WHEN i.ID_Uff3 IS NOT NULL THEN '_' + CAST(i.ID_Uff3 AS NVARCHAR(50)) ELSE '' END
+                        ) AS department_id,
+                        i.IDPersonale AS person_id,
+                        p.Cognome + ' ' + p.Nome AS full_name,
+                        i.id_incarico AS role
+                    FROM Incarichi i
+                    INNER JOIN ElencoPersonale p ON p.IDPersonale = i.IDPersonale
+                    WHERE p.Stato_Servizio = 'Attivo';";
 
                 using (var cmd = new SqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -147,27 +177,23 @@ namespace DAAAOrgchart
             return list;
         }
 
-
-
+        // 🔹 Classi di supporto
         public class Department
         {
-            public string Id { get; set; }          // Esempio: 12_51_170
-            public string ParentId { get; set; }    // Esempio: 12_51
+            public string Id { get; set; }
+            public string ParentId { get; set; }
             public string Name { get; set; }
+            public string ManagerId { get; set; }
+            public string ManagerFullName { get; set; }
             public List<Department> Children { get; set; } = new List<Department>();
         }
 
         public class StaffMember
         {
-            public string DepartmentId { get; set; } // concatenato ID_Uff1_ID_Uff2_ID_Uff3
+            public string DepartmentId { get; set; }
             public int PersonId { get; set; }
             public string FullName { get; set; }
             public string Role { get; set; }
         }
-
     }
 }
-
-
-
-
