@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DAAAOrgchart
+namespace DipendentiWeb
 {
 
 
@@ -24,12 +24,12 @@ namespace DAAAOrgchart
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// OrganigrammaLiteral control.
+        /// litOrganigramma control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal OrganigrammaLiteral;
+        protected global::System.Web.UI.WebControls.Literal litOrganigramma;
     }
 }

@@ -1,35 +1,48 @@
-﻿
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Organigramma.aspx.cs" Inherits="DAAAOrgchart.Organigramma" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Organigramma.aspx.cs" Inherits="DipendentiWeb.Organigramma" %>
+
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title>Organigramma</title>
+    <title>Organigramma - DipendentiDB</title>
     <style>
-        ul.tree, ul.tree ul {
-            list-style-type: none;
-            margin: 0;
-            padding-left: 1em;
-            line-height: 1.5em;
+        body {
+            font-family: Segoe UI, Arial, sans-serif;
+            margin: 30px;
+            background-color: #fafafa;
         }
-        ul.tree ul {
-            border-left: 1px solid #ccc;
-            margin-left: 1em;
+        .ufficio {
+            margin-left: 20px;
         }
-        li {
-            margin: 0.3em 0;
+        .titolo {
+            font-weight: bold;
+            color: #003366;
         }
-        .person {
-            margin-left: 1.5em;
-            font-size: 0.9em;
+        .responsabile {
             color: #555;
+            font-style: italic;
         }
-        strong { color: #2a4; }
+        .addetti {
+    color: #333;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+.addetti span.addetto {
+    display: inline-block;
+    margin-right: 6px;
+}
+
+        h1 {
+            color: #003366;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <form id="form1" runat="server">
-        <h2>📊 Organigramma Strutturale</h2>
-        <asp:Literal ID="OrganigrammaLiteral" runat="server" />
+        <h1>Organigramma</h1>
+        <asp:Literal ID="litOrganigramma" runat="server" />
     </form>
 </body>
 </html>
