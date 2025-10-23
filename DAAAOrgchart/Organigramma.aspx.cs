@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Text;
 
 namespace DipendentiWeb
@@ -203,11 +205,22 @@ ORDER BY t.livello DESC, i.Data_inizio DESC
             }
         private string GetAddetti(SqlConnection con, int? idUff1, int? idUff2, int? idUff3)
         {
+            // Se non è definito almeno il primo livello, non serve proseguire
+            if (!idUff1.HasValue)
+                return "";
+
+            // Determina il tipo di incarico in base al livello
+            int tipoIncarico;
+            if (idUff3.HasValue)
+                tipoIncarico = 38;  // Solo per livello 3
+            else
+                tipoIncarico = 45;  // Solo per livelli 1 e 2
+
             string query = @"
         SELECT DISTINCT (e.Cognome + ' ' + e.Nome) AS Addetto
         FROM Incarichi i
         INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
-        WHERE i.id_tipo_incarico IN (38,45)
+        WHERE i.id_tipo_incarico = @tipoIncarico
           AND e.Stato_Servizio = 'Attivo'
           AND (@idUff1 IS NULL OR i.ID_Uff1 = @idUff1)
           AND (@idUff2 IS NULL OR i.ID_Uff2 = @idUff2)
@@ -217,35 +230,36 @@ ORDER BY t.livello DESC, i.Data_inizio DESC
 
             using (SqlCommand cmd = new SqlCommand(query, con))
             {
+                cmd.Parameters.AddWithValue("@tipoIncarico", tipoIncarico);
                 cmd.Parameters.AddWithValue("@idUff1", (object)idUff1 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff2", (object)idUff2 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff3", (object)idUff3 ?? DBNull.Value);
 
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
-                    StringBuilder sb = new StringBuilder();
-                    bool hasAny = false;
+                    List<string> addetti = new List<string>();
 
                     while (dr.Read())
                     {
-                        if (!hasAny)
-                        {
-                            sb.Append("<div class='addetti'>Addetti: ");
-                            hasAny = true;
-                        }
-
-                        string addetto = dr["Addetto"] == DBNull.Value ? "" : dr["Addetto"].ToString();
-                        sb.Append($"<span class='addetto'>{Server.HtmlEncode(addetto)}</span>");
+                        string addetto = dr["Addetto"] == DBNull.Value ? "" : dr["Addetto"].ToString().Trim();
+                        if (!string.IsNullOrEmpty(addetto))
+                            addetti.Add(Server.HtmlEncode(addetto));
                     }
 
-                    if (hasAny)
-                        sb.Append("</div>");
+                    // Se non ci sono addetti, non visualizza nulla
+                    if (addetti.Count == 0)
+                        return "";
 
-                    return sb.ToString(); // vuoto se non ci sono addetti
+                    // Se ci sono addetti, costruisce il blocco HTML
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("<div class='addetti'>Addetti: ");
+                    sb.Append(string.Join(", ", addetti.Select(a => $"<span class='addetto'>{a}</span>")));
+                    sb.Append("</div>");
+
+                    return sb.ToString();
                 }
             }
         }
-
 
     }
 }
