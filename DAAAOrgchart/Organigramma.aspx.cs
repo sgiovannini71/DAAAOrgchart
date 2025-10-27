@@ -6,12 +6,16 @@ using System.Text;
 
 namespace DipendentiWeb
 {
+    
 
         public partial class Organigramma : System.Web.UI.Page
         {
             private string connString = ConfigurationManager.ConnectionStrings["DipendentiDBConnectionString"].ConnectionString;
+            private  string UffLiv1_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv1_empty"];
+            private  string UffLiv2_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv2_empty"];
+            private  string UffLiv3_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv3_empty"];
 
-            protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load(object sender, EventArgs e)
             {
                 if (!IsPostBack)
                 {
@@ -225,48 +229,46 @@ namespace DipendentiWeb
             return sb.ToString();
         }
 
+
+
         private string GetResponsabile(SqlConnection con, int? idUff1, int? idUff2, int? idUff3)
         {
-            // Normalizza valori speciali a NULL
-            idUff1 = (idUff1 == 22) ? null : idUff1;
-            idUff2 = (idUff2 == 119) ? null : idUff2;
-            idUff3 = (idUff3 == 195) ? null : idUff3;
-
             string baseQuery = @"
-        SELECT TOP 1 
-            e.Cognome + ' ' + e.Nome AS NomeCompleto,
-            CASE 
-                WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '')
-                ELSE ISNULL(t.Sigla_titolo, '')
-            END AS Qualifica,
-            ti.Descr_incarico,
-            ti.livello
-        FROM Incarichi i
-        INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
-        INNER JOIN Tipo_incarichi ti ON i.id_tipo_incarico = ti.id_tipo_incarico
-        LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
-        LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
-        LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
-        LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
-        WHERE e.Stato_Servizio = 'Attivo'
-          AND ti.livello >= 60
-          AND (
-                (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = 195)))
-             AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = 119)))
-             AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = 22)))
-          )
-          AND i.principale = @principale
-        ORDER BY ti.livello DESC, i.Data_inizio DESC";
+SELECT TOP 1 
+    ti.Descr_incarico,
+    CASE 
+        WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '')
+        ELSE ISNULL(t.Sigla_titolo, '')
+    END AS Qualifica,
+    e.Cognome + ' ' + e.Nome AS NomeCompleto,
+    ti.livello
+FROM Incarichi i
+INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
+INNER JOIN Tipo_incarichi ti ON i.id_tipo_incarico = ti.id_tipo_incarico
+LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
+LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
+LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
+LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
+WHERE e.Stato_Servizio = 'Attivo'
+  AND ti.livello >= 60
+  AND (
+        (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = @UffLiv3Empty)))
+     AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = @UffLiv2Empty)))
+     AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = @UffLiv1Empty)))
+  )
+  AND i.principale = @principale
+ORDER BY ti.livello DESC, i.Data_inizio DESC;";
 
             // 1° tentativo: responsabile principale
             string responsabile = EseguiQueryResponsabile(con, baseQuery, idUff1, idUff2, idUff3, true);
 
-            // 2° tentativo: responsabile secondario
+            // 2° tentativo: responsabile secondario (non principale)
             if (string.IsNullOrEmpty(responsabile))
                 responsabile = EseguiQueryResponsabile(con, baseQuery, idUff1, idUff2, idUff3, false);
 
             return responsabile ?? string.Empty;
         }
+
         private string EseguiQueryResponsabile(SqlConnection con, string query, int? idUff1, int? idUff2, int? idUff3, bool principale)
         {
             using (SqlCommand cmd = new SqlCommand(query, con))
@@ -274,19 +276,20 @@ namespace DipendentiWeb
                 cmd.Parameters.AddWithValue("@idUff1", (object)idUff1 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff2", (object)idUff2 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff3", (object)idUff3 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UffLiv1Empty", UffLiv1_empty);
+                cmd.Parameters.AddWithValue("@UffLiv2Empty", UffLiv2_empty);
+                cmd.Parameters.AddWithValue("@UffLiv3Empty", UffLiv3_empty);
                 cmd.Parameters.AddWithValue("@principale", principale);
 
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     if (dr.Read())
                     {
-                        string nome = dr["NomeCompleto"]?.ToString() ?? "";
-                        string qualifica = dr["Qualifica"]?.ToString() ?? "";
                         string descrIncarico = dr["Descr_incarico"]?.ToString() ?? "";
-                        // anteponi grado/titolo al nome
-                        return $"{descrIncarico} - {qualifica} {nome} ";
-                        
+                        string qualifica = dr["Qualifica"]?.ToString() ?? "";
+                        string nomeCompleto = dr["NomeCompleto"]?.ToString() ?? "";
 
+                        return $"{descrIncarico}: {qualifica} {nomeCompleto}";
                     }
                 }
             }
@@ -295,43 +298,44 @@ namespace DipendentiWeb
 
         private string GetAddetti(SqlConnection con, int? idUff1, int? idUff2, int? idUff3)
         {
-            // Normalizza valori speciali a NULL
-            idUff1 = (idUff1 == 22) ? null : idUff1;
-            idUff2 = (idUff2 == 119) ? null : idUff2;
-            idUff3 = (idUff3 == 195) ? null : idUff3;
-
             string query = @"
-        SELECT DISTINCT 
-            e.Cognome + ' ' + e.Nome AS Addetto,
-            CASE 
-                WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '')
-                ELSE ISNULL(t.Sigla_titolo, '')
-            END AS Qualifica
-        FROM Incarichi i
-        INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
-        LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
-        LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
-        LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
-        LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
-        WHERE i.id_tipo_incarico IN (38, 45)
-          AND e.Stato_Servizio = 'Attivo'
-          AND (
-                (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = 195)))
-             AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = 119)))
-             AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = 22)))
-          )
-        ORDER BY Addetto";
+SELECT DISTINCT 
+    CASE 
+        WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '') 
+        ELSE ISNULL(t.Sigla_titolo, '') 
+    END AS Qualifica,
+    e.Cognome,
+    e.Nome,
+    e.Cognome + ' ' + e.Nome AS NomeCompleto
+FROM Incarichi i
+INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
+LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
+LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
+LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
+LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
+WHERE i.id_tipo_incarico IN (38,45)
+  AND e.Stato_Servizio = 'Attivo'
+  AND (
+        (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = @UffLiv3Empty)))
+     AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = @UffLiv2Empty)))
+     AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = @UffLiv1Empty)))
+  )
+ORDER BY e.Cognome, e.Nome;";
 
             using (SqlCommand cmd = new SqlCommand(query, con))
             {
                 cmd.Parameters.AddWithValue("@idUff1", (object)idUff1 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff2", (object)idUff2 ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@idUff3", (object)idUff3 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UffLiv1Empty", UffLiv1_empty);
+                cmd.Parameters.AddWithValue("@UffLiv2Empty", UffLiv2_empty);
+                cmd.Parameters.AddWithValue("@UffLiv3Empty", UffLiv3_empty);
 
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     StringBuilder sb = new StringBuilder();
                     bool hasAny = false;
+
                     while (dr.Read())
                     {
                         if (!hasAny)
@@ -339,12 +343,15 @@ namespace DipendentiWeb
                             sb.Append("<div class='addetti'>Addetti: ");
                             hasAny = true;
                         }
-                        string addetto = dr["Addetto"]?.ToString() ?? "";
+
                         string qualifica = dr["Qualifica"]?.ToString() ?? "";
-                        // anteponi grado/titolo al nome
-                        sb.Append($"<span class='addetto'>{Server.HtmlEncode(qualifica)} {Server.HtmlEncode(addetto)}</span> ");
+                        string nomeCompleto = dr["NomeCompleto"]?.ToString() ?? "";
+                        sb.Append($"<span class='addetto'>{Server.HtmlEncode(qualifica + " " + nomeCompleto)}</span> ");
                     }
-                    if (hasAny) sb.Append("</div>");
+
+                    if (hasAny)
+                        sb.Append("</div>");
+
                     return sb.ToString();
                 }
             }
