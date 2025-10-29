@@ -1,0 +1,445 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+
+namespace DipendentiWeb
+{
+    
+
+        public partial class Organigramma4 : System.Web.UI.Page
+        {
+            private string connString = ConfigurationManager.ConnectionStrings["DipendentiDBConnectionString"].ConnectionString;
+            private  string UffLiv1_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv1_empty"];
+            private  string UffLiv2_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv2_empty"];
+            private  string UffLiv3_empty = System.Configuration.ConfigurationManager.AppSettings["UffLiv3_empty"];
+            private string baseUrlMilitare = ConfigurationManager.AppSettings["BaseUrlMilitare"];
+            private string baseUrlCivile = ConfigurationManager.AppSettings["BaseUrlCivile"];
+
+        protected void Page_Load(object sender, EventArgs e)
+            {
+                if (!IsPostBack)
+                {
+                    litOrganigramma.Text = CreaOrganigramma();
+                }
+            }
+
+        private string CreaOrganigramma()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("<ul class='tree'>");
+
+            using (SqlConnection con = new SqlConnection(connString))
+            {
+                con.Open();
+
+                // DIRETTORE (nodo principale)
+                sb.Append("<li>");
+                sb.Append(GetUfficioPrincipale(con, 11, "Direttore"));
+
+                // --- Prime linee come figli del Direttore ---
+                sb.Append("<div class='children'>");
+
+                string queryPrimeLinee = @"
+            SELECT ID_Uff1, SgUff1, DescUff1, Livello
+            FROM Liv1Uff
+            WHERE ID_Uff1 <> 11
+            ORDER BY 
+                CASE WHEN Livello = 0 THEN 999 ELSE Livello END ASC,
+                SgUff1 ASC";
+
+                using (SqlCommand cmd = new SqlCommand(queryPrimeLinee, con))
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        int idUff1 = Convert.ToInt32(dr["ID_Uff1"]);
+                        string nome = $"{dr["SgUff1"]} - {dr["DescUff1"]}";
+
+                        sb.Append("<div class='node' data-id1='" + idUff1 + "'>");
+                        sb.Append("<div class='meta'>");
+                        sb.Append("<div class='title'>" + System.Web.HttpUtility.HtmlEncode(nome) + "</div>");
+
+                        string resp = GetResponsabile(con, idUff1, null, null);
+                        if (!string.IsNullOrEmpty(resp))
+                            sb.Append($"<div class='sub'>{resp}</div>"); // NESSUNA ENCODING
+
+
+                        string addetti = GetAddetti(con, idUff1, null, null);
+                        if (!string.IsNullOrEmpty(addetti))
+                            sb.Append(addetti);
+
+                        sb.Append("</div>"); // meta
+                        sb.Append("</div>"); // node
+
+                        // figli (Liv2 e Liv3)
+                        sb.Append(GetLiv2(con, idUff1, 1));
+                    }
+                }
+
+                sb.Append("</div>"); // chiude children del Direttore
+                sb.Append("</li>");
+            }
+
+            sb.Append("</ul>");
+            return sb.ToString();
+        }
+
+
+        private string GetUfficioPrincipale(SqlConnection con, int idUff1, string titolo)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            string query = "SELECT SgUff1, DescUff1 FROM Liv1Uff WHERE ID_Uff1=@id";
+
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@id", idUff1);
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        string nome = $"{dr["SgUff1"]} - {dr["DescUff1"]}";
+                        // Node
+                        sb.Append($"<div class='node' data-id1='{idUff1}'>");
+                        sb.Append("<div class='meta'>");
+                        //sb.Append($"<div class='title'>{System.Web.HttpUtility.HtmlEncode(titolo + \": \" + nome)}</div>");
+                        sb.Append("<div class='title'>" + System.Web.HttpUtility.HtmlEncode(titolo + ": " + nome) + "</div>");
+
+                        string resp = GetResponsabile(con, idUff1, null, null);
+                        if (!string.IsNullOrEmpty(resp))
+                            sb.Append($"<div class='sub'>{resp}</div>"); // NESSUNA ENCODING
+
+                        string addetti = GetAddetti(con, idUff1, null, null);
+                        if (!string.IsNullOrEmpty(addetti))
+                            sb.Append(addetti);
+                        sb.Append("</div>"); // meta
+                        sb.Append("</div>"); // node
+
+                        // children (es. Liv2 per il principale)
+                        sb.Append(GetLiv2(con, idUff1, 1));
+                    }
+                }
+            }
+
+            return sb.ToString();
+        }
+        private string GetLiv2(SqlConnection con, int idUff1, int livello)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            //string query = "SELECT ID_Uff2, SgUff2, DescUff2 FROM Liv2Uff WHERE ID_Uff1=@idUff1 ORDER BY SgUff2";
+            string query = @"
+                            SELECT ID_Uff2, SgUff2, DescUff2, Livello
+                            FROM Liv2Uff
+                            WHERE ID_Uff1 = @idUff1
+                            ORDER BY 
+                                CASE WHEN Livello = 0 THEN 999 ELSE Livello END ASC,
+                                SgUff2 ASC";
+
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@idUff1", idUff1);
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (!dr.HasRows)
+                        return ""; // ❌ nessun figlio → niente <div class='children'>
+
+                    sb.Append("<div class='children'>");
+                    while (dr.Read())
+                    {
+                        int idUff2 = Convert.ToInt32(dr["ID_Uff2"]);
+                        string nome = $"{dr["SgUff2"]} - {dr["DescUff2"]}";
+
+                        sb.Append($"<div class='node' data-id1='{idUff1}' data-id2='{idUff2}'>");
+                        sb.Append("<div class='meta'>");
+                        sb.Append($"<div class='title'>{System.Web.HttpUtility.HtmlEncode(nome)}</div>");
+
+                        string resp2 = GetResponsabile(con, idUff1, idUff2, null);
+                        if (!string.IsNullOrEmpty(resp2))
+                            sb.Append($"<div class='sub'>{resp2}</div>"); // NESSUNA ENCODING                   
+
+
+
+                        // ✅ addetti solo se diretti all'ufficio
+                        string addettiLiv2 = GetAddetti(con, idUff1, idUff2, null);
+                        if (!string.IsNullOrEmpty(addettiLiv2))
+                            sb.Append(addettiLiv2);
+
+                        sb.Append("</div></div>"); // meta + node
+
+                        // ricorsione verso Liv3
+                        string liv3 = GetLiv3(con, idUff1, idUff2, livello + 1);
+                        if (!string.IsNullOrEmpty(liv3))
+                            sb.Append(liv3);
+                    }
+                    sb.Append("</div>");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private string GetLiv3(SqlConnection con, int idUff1, int idUff2, int livello)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            //string query = "SELECT ID_Uff3, SgUff3, DescUff3 FROM Liv3Uff WHERE ID_Uff1=@idUff1 AND ID_Uff2=@idUff2 ORDER BY SgUff3";
+            string query = @"
+                            SELECT ID_Uff3, SgUff3, DescUff3, Livello
+                            FROM Liv3Uff
+                            WHERE ID_Uff1 = @idUff1 AND ID_Uff2 = @idUff2
+                            ORDER BY 
+                                CASE WHEN Livello = 0 THEN 999 ELSE Livello END ASC,
+                                SgUff3 ASC";
+
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@idUff1", idUff1);
+                cmd.Parameters.AddWithValue("@idUff2", idUff2);
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (!dr.HasRows)
+                        return ""; // ❌ nessun figlio → niente <div class='children'>
+
+                    sb.Append("<div class='children'>");
+                    while (dr.Read())
+                    {
+                        int idUff3 = Convert.ToInt32(dr["ID_Uff3"]);
+                        string nome = $"{dr["SgUff3"]} - {dr["DescUff3"]}";
+
+                        sb.Append($"<div class='node' data-id1='{idUff1}' data-id2='{idUff2}' data-id3='{idUff3}'>");
+                        sb.Append("<div class='meta'>");
+                        sb.Append($"<div class='title'>{System.Web.HttpUtility.HtmlEncode(nome)}</div>");
+
+                        string resp3 = GetResponsabile(con, idUff1, idUff2, idUff3);
+                        if (!string.IsNullOrEmpty(resp3))
+                            sb.Append($"<div class='sub'>{resp3}</div>"); // NESSUNA ENCODING
+
+
+                        string addettiLiv3 = GetAddetti(con, idUff1, idUff2, idUff3);
+                        if (!string.IsNullOrEmpty(addettiLiv3))
+                            sb.Append(addettiLiv3);
+
+                        sb.Append("</div></div>");
+                    }
+                    sb.Append("</div>");
+                }
+            }
+
+            return sb.ToString();
+        }
+
+
+
+        private string GetResponsabile(SqlConnection con, int? idUff1, int? idUff2, int? idUff3)
+        {
+            string baseQuery = @"
+SELECT TOP 1 
+    i.IDPersonale,
+    ti.Descr_incarico,
+    CASE 
+        WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '')
+        ELSE ISNULL(t.Sigla_titolo, '')
+    END AS Qualifica,
+    e.Cognome + ' ' + e.Nome AS NomeCompleto,
+    e.Militare,
+    ti.livello
+FROM Incarichi i
+INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
+INNER JOIN Tipo_incarichi ti ON i.id_tipo_incarico = ti.id_tipo_incarico
+LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
+LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
+LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
+LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
+WHERE e.Stato_Servizio = 'Attivo'
+  AND ti.livello >= 55
+  AND (
+        (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = @UffLiv3Empty)))
+     AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = @UffLiv2Empty)))
+     AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = @UffLiv1Empty)))
+  )
+  AND i.principale = @principale
+ORDER BY ti.livello DESC, i.Data_inizio DESC;
+";
+
+            // 1° tentativo: responsabile principale
+            string responsabile = EseguiQueryResponsabile(con, baseQuery, idUff1, idUff2, idUff3, true);
+
+            // 2° tentativo: responsabile secondario (non principale)
+            if (string.IsNullOrEmpty(responsabile))
+                responsabile = EseguiQueryResponsabile(con, baseQuery, idUff1, idUff2, idUff3, false);
+
+            return responsabile ?? string.Empty;
+        }
+
+        
+        private string EseguiQueryResponsabile(SqlConnection con, string query, int? idUff1, int? idUff2, int? idUff3, bool principale)
+        {
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@idUff1", (object)idUff1 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@idUff2", (object)idUff2 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@idUff3", (object)idUff3 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UffLiv1Empty", UffLiv1_empty);
+                cmd.Parameters.AddWithValue("@UffLiv2Empty", UffLiv2_empty);
+                cmd.Parameters.AddWithValue("@UffLiv3Empty", UffLiv3_empty);
+                cmd.Parameters.AddWithValue("@principale", principale);
+
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    if (dr.Read())
+                    {
+                        string descrIncarico = dr["Descr_incarico"]?.ToString() ?? "";
+                        string qualifica = dr["Qualifica"]?.ToString() ?? "";
+                        string nomeCompleto = dr["NomeCompleto"]?.ToString() ?? "";
+
+                        // Determina URL in base al tipo di personale
+                        bool militare = Convert.ToBoolean(dr["Militare"]);
+                        int idPersonale = Convert.ToInt32(dr["IDPersonale"]);
+                        string url = militare
+                            ? $"{baseUrlMilitare}?action=r&idp={idPersonale}"
+                            : $"{baseUrlCivile}?action=r&idp={idPersonale}";
+
+                        // 1. Codifica HTML solo i contenuti di testo estratti dal DB.
+                        string displayNomeCompleto = System.Web.HttpUtility.HtmlEncode(qualifica + " " + nomeCompleto);
+                        string displayIncarico = System.Web.HttpUtility.HtmlEncode(descrIncarico);
+
+                        // 2. Costruisci la stringa HTML *NON* codificata, inserendo i contenuti codificati.
+
+                        // Ritorna la descrizione dell'incarico seguita dal link
+                        return $"{displayIncarico}: <a href='{url}' target='_blank'>{displayNomeCompleto}</a>";
+
+                    }
+                }
+            }
+            return string.Empty;
+        }
+
+        private string GetAddetti(SqlConnection con, int? idUff1, int? idUff2, int? idUff3)
+        {
+            string query = @"
+SELECT DISTINCT 
+    i.IDPersonale,
+    e.Militare,
+    CASE 
+        WHEN e.Militare = 1 THEN ISNULL(g.SiglaGrado, '') 
+        ELSE ISNULL(t.Sigla_titolo, '') 
+    END AS Qualifica,
+    e.Cognome,
+    e.Nome,
+    e.Cognome + ' ' + e.Nome AS NomeCompleto,
+    ti.livello AS LivelloIncarico,
+    t.Livello AS LivelloTitolo
+FROM Incarichi i
+INNER JOIN ElencoPersonale e ON e.IDPersonale = i.IDPersonale
+INNER JOIN Tipo_incarichi ti ON i.id_tipo_incarico = ti.id_tipo_incarico 
+LEFT JOIN Profilo_militare pm ON e.IDPersonale = pm.IDPersonale
+LEFT JOIN Gradi g ON pm.ID_Grado = g.ID_Grado
+LEFT JOIN PersCivile pc ON e.IDPersonale = pc.IDPersonale
+LEFT JOIN Titoli t ON pc.ID_TitoloAtt = t.ID_Titolo
+WHERE i.id_tipo_incarico IN (38,45)
+  AND e.Stato_Servizio = 'Attivo'
+  AND (
+        (i.ID_Uff3 = @idUff3 OR (@idUff3 IS NULL AND (i.ID_Uff3 IS NULL OR i.ID_Uff3 = @UffLiv3Empty)))
+      AND (i.ID_Uff2 = @idUff2 OR (@idUff2 IS NULL AND (i.ID_Uff2 IS NULL OR i.ID_Uff2 = @UffLiv2Empty)))
+      AND (i.ID_Uff1 = @idUff1 OR (@idUff1 IS NULL AND (i.ID_Uff1 IS NULL OR i.ID_Uff1 = @UffLiv1Empty)))
+  );
+";
+
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@idUff1", (object)idUff1 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@idUff2", (object)idUff2 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@idUff3", (object)idUff3 ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UffLiv1Empty", UffLiv1_empty);
+                cmd.Parameters.AddWithValue("@UffLiv2Empty", UffLiv2_empty);
+                cmd.Parameters.AddWithValue("@UffLiv3Empty", UffLiv3_empty);
+
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    var militari = new List<dynamic>();
+                    var civili = new List<dynamic>();
+
+                    while (dr.Read())
+                    {
+                        var item = new
+                        {
+                            IDPersonale = Convert.ToInt32(dr["IDPersonale"]),
+                            Militare = Convert.ToBoolean(dr["Militare"]),
+                            Qualifica = dr["Qualifica"]?.ToString() ?? "",
+                            NomeCompleto = dr["NomeCompleto"]?.ToString() ?? "",
+                            Cognome = dr["Cognome"]?.ToString() ?? "",
+                            Nome = dr["Nome"]?.ToString() ?? "",
+                            LivelloIncarico = dr["LivelloIncarico"] != DBNull.Value ? Convert.ToInt32(dr["LivelloIncarico"]) : 0,
+                            LivelloTitolo = dr["LivelloTitolo"] != DBNull.Value ? Convert.ToInt32(dr["LivelloTitolo"]) : 0
+                        };
+
+                        if (item.Militare)
+                            militari.Add(item);
+                        else
+                            civili.Add(item);
+                    }
+
+                    // Ordina i militari per livello incarico, cognome, nome
+                    militari = militari
+                        .OrderBy(m => m.LivelloIncarico)
+                        .ThenBy(m => m.Cognome)
+                        .ThenBy(m => m.Nome)
+                        .ToList();
+
+                    // Ordina i civili per livello titolo, cognome, nome
+                    civili = civili
+                        .OrderBy(c => c.LivelloTitolo)
+                        .ThenBy(c => c.Cognome)
+                        .ThenBy(c => c.Nome)
+                        .ToList();
+
+                    if (militari.Count == 0 && civili.Count == 0)
+                        return string.Empty;
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("<div class='addetti'>");
+                    sb.Append("<div class='addetti-title'>Addetti:</div>");
+                    sb.Append("<div class='addetti-list'>");
+
+                    // --- MILITARI ---
+                    foreach (var m in militari)
+                    {
+                        string qual = System.Web.HttpUtility.HtmlEncode(m.Qualifica + " ");
+                        string nomeEncoded = Server.HtmlEncode(m.NomeCompleto);
+                        string url = $"{baseUrlMilitare}?action=r&idp={m.IDPersonale}";
+
+                        sb.Append($"<div class='addetto-item militare'><a href='{url}' target='_blank'>{qual}{nomeEncoded}</a></div>");
+                    }
+
+                    // --- CIVILI ---
+                    if (civili.Count > 0)
+                    {
+                        if (militari.Count > 0)
+                            sb.Append("<div class='addetti-separator'></div>"); // separatore visivo
+
+                        foreach (var c in civili)
+                        {
+                            string qual = System.Web.HttpUtility.HtmlEncode(c.Qualifica + " ");
+                            string nomeEncoded = Server.HtmlEncode(c.NomeCompleto);
+                            string url = $"{baseUrlCivile}?action=r&idp={c.IDPersonale}";
+
+                            sb.Append($"<div class='addetto-item civile'><a href='{url}' target='_blank'>{qual}{nomeEncoded}</a></div>");
+                        }
+                    }
+
+                    sb.Append("</div></div>");
+                    return sb.ToString();
+                }
+            }
+        }
+
+
+
+    }
+}
+

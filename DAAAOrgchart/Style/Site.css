@@ -1,0 +1,832 @@
+﻿
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 10px !important; /* Force font size */
+}
+#id_search::placeholder {
+    color: gray;
+    opacity: 1; /* Ensures consistent gray color across browsers */
+}
+.align-right_EditUser {
+    float: right;
+}
+/* Change background color on hover for the entire row */
+.hover-row:hover {
+    background-color: #357ABD;
+    color: white; /* Optional: change text color */
+}
+
+/* Change background color on hover for a specific cell */
+.hover-cell:hover {
+    background-color: #357ABD;
+    color: white; /* Optional: change text color */
+    text-align: center;    
+    vertical-align: middle;     
+}
+.hover-cell {    
+    text-align: center;    
+    vertical-align: middle;     
+}
+/* Style specifically for hyperlinks with the class "no-underline" */
+.no-underline {
+    text-decoration: none;
+}
+
+/* Optional: Add hover effect if needed */
+.no-underline:hover {
+    text-decoration: none; /* Ensures underline doesn't reappear on hover */
+    color: inherit; /* Optional: Keeps the same text color */
+}
+
+/*title DAAA*/
+.bold-link {
+    font-weight: bold;    /* Makes the text bold */
+    font-size: 16px;      /* Sets the font size to 16 pixels */
+    color: #ffffff;       /* Optional: Set a color to match your theme */
+    text-decoration: none; /* Optional: Remove underline */
+}
+
+.bold-link:hover {
+    text-decoration: underline; /* Optional: Underline on hover */
+}
+/*logo container*/
+.logo-container {
+    text-align: left; /* left the text inside the container */
+}
+
+.logo-container img {
+    vertical-align: middle; /* Align image vertically with text */
+    margin-right: 10px;    /* Add space between image and text */
+}
+
+/* Force edge to reset form and input elements */
+button, input, select, textarea {
+    -webkit-appearance: none !important; /* Disable default styling */
+    -moz-appearance: none !important;    /* Disable default styling for Firefox */    
+    vertical-align: middle;
+}
+/* pulsante fine inserimento */
+buttonEnd {
+    -webkit-appearance: none !important; /* Disable default styling */
+    -moz-appearance: none !important;    /* Disable default styling for Firefox */    
+}
+
+
+/* Body Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container Styles */
+.container {
+    /*width: 90%;*/
+    max-width: 1200px;
+    margin: auto;
+    padding: 0px;
+    background: #4a90e2;    
+}
+
+/* Header Styles */
+header {
+    text-align: center;
+    padding: 5px 0;
+}
+
+h1 {
+    color: #4a90e2;
+    margin-bottom: 5px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed; /* Fix table width issues */
+}
+.table_DefaultM {
+    width: 75%; 
+}
+
+.table-cell-center {    
+    vertical-align: middle;     /* Vertical centering */
+    padding: 10px;              /* Optional padding for spacing */
+    /*display: flex;*/
+    align-items: center;  /* Vertically centers the content */
+    justify-content: center; /* Horizontally centers the content */
+    text-align: center; /* Centers text elements within the cell */
+}
+/* Table Row Styles */
+tr {
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+tr:hover {
+    background-color: #f2f2f2;
+}
+
+/* Table Header Cell Styles */
+th {
+    background-color: #4a90e2;
+    color: #fff;
+    padding: 5px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+.th-icons_defaultM 
+{
+    text-align: center;
+    width: 25px;
+}
+.th-fields_defaultM
+{
+    width: auto;    
+    white-space:nowrap;
+}
+/* Table Cell Styles */
+td {
+    padding: 5px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Button Styles */
+.button {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    background-color: #4a90e2;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #357ABD;
+}
+
+/* Form Styles */
+form {
+    margin-top: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+/**calendar settings*/
+.custom-calendar {
+    width: 50%;             /* Set the calendar width to fill the container */
+    border: 1px solid #4a90e2; /* Add a border color that matches your theme */    
+    padding: 2px;           /* Optional: Add padding for spacing inside the calendar */
+}
+
+/* You can also style specific parts of the calendar, like the header */
+.custom-calendar .ajax__calendar_header {
+    background-color: #4a90e2; /* Set a background color for the header */
+    color: white;              /* Set text color to white */
+    padding: 5px;             /* Add padding */
+}
+
+/* Optional: Style the day cells */
+.custom-calendar .ajax__calendar_day {
+    padding: 5px;             /* Add padding to day cells */
+}
+
+/* Optional: Style the selected day */
+.custom-calendar .ajax__calendar_selected {
+    background-color: #007BFF; /* Change selected day background color */
+    color: white;              /* Change selected day text color */
+}
+
+/* Input and Textbox Styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+    width: 50%;
+    padding: 5px;
+    margin-bottom: 2px;
+    border: 1px solid #ccc !important; /* Override Edge's default border */
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select:focus {
+    border-color: #4a90e2 !important; /* Force Edge to respect the border-color */
+    outline: none;
+}
+
+/* Dropdown Styles */
+select {
+    background-color: #fff;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#4a90e2"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+}
+
+/* Alert Styles */
+.alert {
+    padding: 3px;
+    margin: 20px 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+}
+
+.alert-success {
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+    color: #3c763d;
+}
+
+.alert-error {
+    background-color: #f2dede;
+    border-color: #ebccd1;
+    color: #a94442;
+}
+.caption {
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+    color: #3c763d;
+}
+
+/* Menu Styles */
+/* Style for the entire menu */
+.menu {
+    background-color: #4a90e2; /* Main background color */
+    color: white; /* Main text color */
+    font-family: Arial, sans-serif; /* Font styling */
+    padding: 2px; /* Padding around the menu */
+    /*display: flex;              Flexbox for horizontal layout */
+}
+
+    /* Style for the menu items */
+    .menu a, .menu a:visited {
+        color: white; /* Text color for menu items */
+        text-decoration: none; /* Remove underline from links */
+        padding: 3px 8px; /* Padding for spacing */
+        display: inline-block; /* Ensure items stay in line */
+        /*transition: background-color 0.3s ease;  Smooth hover transition */
+    }
+
+        /* Hover and active state */
+        .menu a:hover, .menu a:active {
+            background-color: #3a78c2; /* Darker blue on hover */
+            /*border-radius: 3px;          Rounded corners on hover */
+        }
+
+    /* Style for submenu items */
+    .menu ul {
+        list-style-type: none; /* Remove bullets from submenus */
+        padding: 10;
+        margin: 10;
+        background-color: #4a90e2; /* Same background for submenu */
+        /* display: none;              Hidden by default */
+        position: absolute; /* Position submenus absolutely */
+        padding-top: 10px;
+    }
+
+    /* Show submenu when hovering */
+    .menu li:hover ul {
+        display: block; /* Display submenu on hover */
+    }
+    /* Style for submenu items */
+    .menu ul li {
+        margin-bottom: 2px; /* Space between submenu items */
+        margin-bottom: 2px;
+        border-bottom: 1px solid #336699; /* Add a bottom border */
+    }
+    
+        /* Style for submenu links */
+        .menu ul li a {
+          
+            color: white; /* White text in submenus */
+            padding: 10px; /* Padding inside submenu */
+            display: block; /* Block level for easier hover */
+            border-radius: 20px; /* Rounded corners */
+        }
+
+            /* Hover effect for submenu */
+            .menu ul li a:hover {
+                background-color: #3a78c2; /* Darker blue hover effect */
+            }
+
+    /* Image styling for menu items */
+    .menu img {
+        vertical-align: middle; /* Align images with text */
+        margin-right: 5px; /* Space between image and text */
+    }
+/*detailsview theme*/
+/* Overall style for the DetailsView */
+.details-view-modern {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto; /* Center the DetailsView */
+    border: 1px solid #4a90e2; /* Light border */    
+    overflow: hidden; /* Rounded borders */
+}
+
+/* Header style (like the field names) */
+.details-view-modern th {
+    background-color: #4A90E2; /* Primary blue color */
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    padding: 12px 20px;
+}
+
+/* Row style (fields content) */
+.details-view-modern td {
+    padding: 2px 5px;
+    border-bottom: 1px solid #f1f1f1;
+    color: #333; /* Darker text color for contrast */
+}
+
+/* Styling for labels inside the fields */
+.details-view-modern .field-label {
+    font-weight: bold;
+    color: #4A90E2; /* Use primary color for labels */
+    margin-right: 10px;
+}
+
+/* Hover effect for the rows */
+.details-view-modern tr:hover {
+    background-color: #e6f2fc; /* Soft blue hover effect */
+}
+
+/* Style for the header text (if any) */
+.details-view-modern .header-text {
+    background-color: #4A90E2;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+/* Style for buttons inside DetailsView */
+.details-view-modern .details-button {
+    background-color: #4A90E2;
+    color: white;
+    padding: 8px 16px;
+    border: none;    
+    font-size: 14px;
+    cursor: pointer;    
+}
+
+.details-view-modern .details-button:hover {
+    background-color: #3a78b7; /* Darker blue on hover */
+}
+/*modern for label and textbox not in detailsview*/
+/* General container style similar to .details-view-modern */
+.textbox-label-container {
+    width: 100%;
+    max-width: 780px;
+    margin: 0 auto; /* Center the container */
+    border: 1px solid #4a90e2; /* Light border */
+    overflow: hidden;
+    padding: 10px; /* Add some padding if needed */
+}
+
+/* Style for ASP.NET TextBox */
+.textbox-style {
+    width: calc(100% - 20px); /* Adjust width to fit the container */
+    padding: 8px;
+    border: 0px solid #ccc !important;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Style for ASP.NET Label */
+.label-style {
+    font-weight: bold;
+    color: #4A90E2;
+    margin-bottom: 5px;
+    display: block; /* Make the label act as a block element */
+}
+
+/* Style similar to .details-view-modern th for headers */
+.label-header {
+    background-color: #4A90E2;
+    color: white;
+    font-weight: bold;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    display: block; /* Make the header label span the width */
+}
+
+/*gridview with detailsview*/
+#gv_after_dv81 .grid-view-modern2, /* Main GridView style */
+#gv_after_dv8 .grid-view-modern2,
+#gv_after_dv812 .grid-view-modern2,
+#gv_after_dv3 .grid-view-modern2,
+#gv_after_dv2 .grid-view-modern2,
+#gv_after_dv .grid-view-modern2 {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto; /* Center the GridView */
+    border: 1px solid #4a90e2; /* Light border */
+    border-collapse: collapse; /* Ensure border styling is consistent */
+    overflow: hidden; /* Rounded borders */
+}
+.btn-wrapper {
+    width: 100%;
+    max-width: 800px; /* Stessa max-width del GridView */
+    margin: 10px auto 0; /* Centra e aggiunge margine superiore */
+    text-align: right; /* Allinea a destra se vuoi */
+}
+
+/* Header style */
+    #gv_after_dv3 .grid-view-modern2 th,
+    #gv_after_dv2 .grid-view-modern2 th,
+    #gv_after_dv .grid-view-modern2 th {
+        background-color: #4A90E2; /* Primary blue color */
+        color: white;
+        font-weight: bold;
+        text-align: left;
+        padding: 12px 20px;
+        border-bottom: 1px solid #4a90e2;
+        width: 50% !important;
+    }
+
+
+
+/* Row style */
+    #gv_after_dv3 .grid-view-modern2 td,
+    #gv_after_dv2 .grid-view-modern2 td,
+    #gv_after_dv .grid-view-modern2 td {
+        padding: 2px 5px;
+        border-bottom: 1px solid #f1f1f1;
+        color: #333; /* Darker text color for contrast */
+        /*width: 20% !important;*/
+    }
+
+
+
+/* Hover effect for rows */
+    #gv_after_dv2 .grid-view-modern2 tr:hover, 
+    #gv_after_dv3 .grid-view-modern2 tr:hover,
+    #gv_after_dv .grid-view-modern2 tr:hover {
+        background-color: #e6f2fc; /* Soft blue hover effect */
+    }
+/***/
+/***/
+/* Style for buttons inside GridView */
+    #gv_after_dv3 .grid-view-modern2 .details-button,
+    #gv_after_dv2 .grid-view-modern2 .details-button,
+    #gv_after_dv .grid-view-modern2 .details-button {
+        background-color: #4A90E2;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+    }
+        #gv_after_dv3 .grid-view-modern2 .details-button:hover, 
+        #gv_after_dv2 .grid-view-modern2 .details-button:hover,
+        #gv_after_dv .grid-view-modern2 .details-button:hover {
+            background-color: #3a78b7; /* Darker blue on hover */
+        }
+
+
+
+ 
+/*view modern for gridview**/
+//* Main Table Style */
+.tableGV {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    border: 1px solid #4a90e2;
+    border-collapse: collapse;
+}
+
+/* Centering Table Cells */
+.table-cell-centerGV {
+    text-align: center;
+    padding: 10px;
+}
+
+/* 
+
+
+ GridView style */
+.grid-view-modern {
+    width: 100%;
+    border: 1px solid #4a90e2;
+    border-collapse: collapse;
+    margin-top: 10px; /* Space between nested grids */
+}
+.grid-view-modern_DefaultM {
+    width: 100%;
+}
+
+
+/* Header Row Style */
+.grid-view-modern th {
+    background-color: #4A90E2;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    padding: 2px 4px;
+    border-bottom: 2px solid #4a90e2;
+    
+}
+
+/* Data Rows Style */
+.grid-view-modern td {
+    padding: 2px 4px;
+    border-bottom: 1px solid #f1f1f1;
+    color: #333;
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;
+    border: 1px solid #ccc;
+}
+    .grid-view-modern td img {
+        cursor: pointer;
+    }
+.grid-view-modern-expanded {
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+/* Hover Effect for Rows */
+.grid-view-modern tr:hover {
+    background-color: #e6f2fc;
+}
+
+/* Collapsible Panel Style */
+.grid-view-modern .panel {
+    border: 1px solid #4a90e2;
+    margin: 5px 0;
+    padding: 5px;
+}
+
+/* Style for Expand/Collapse Icon */
+.grid-view-modern img {
+    cursor: pointer;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+/* Button in GridView */
+.grid-view-modern .grid-button {
+    background-color: #4A90E2;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Hover Effect for Buttons */
+.grid-view-modern .grid-button:hover {
+    background-color: #3a78c2;
+}
+
+
+/* Overlay dello spinner */
+    .spinner-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* Stile dello spinner */
+    .spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Animazione dello spinner */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+/* ListView Styles */
+
+.list-view-container {  
+    width: 100%;
+    max-width: 800px; 
+    margin: 0 auto;
+    border: 1px solid #4a90e2;
+    border-collapse: collapse; 
+    overflow: hidden;
+}
+
+.list-view-table { 
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.list-view-header th { 
+    background-color: #4A90E2;
+    color: white;
+    font-weight: bold;
+    text-align: left; 
+    padding: 10px;
+    border-bottom: 2px solid #4a90e2; 
+}
+
+.list-view-row {  
+    background-color: #fff;
+    transition: background-color 0.3s ease; 
+}
+
+    .list-view-row:hover {  
+        background-color: #e6f2fc;  
+    }
+
+.list-view-cell { 
+    padding: 8px;
+    text-align: left;  
+    border-bottom: 1px solid #f1f1f1;
+}
+
+ 
+
+
+
+
+.list-view-cell-id {
+    width: 50px;  
+    text-align: center;
+}
+
+.list-view-cell-date {
+    width: 120px;  
+}
+ 
+.list-view-row-alt {
+    background-color: #f9f9f9;  
+}
+
+ 
+.list-view-no-data {
+    text-align: center;
+    padding: 10px;
+    color: #888;
+}
+
+
+/* ===========================================================
+Organigramma grafico – verticale, leggibile, senza limite di larghezza
+con ottimizzazione per stampa PDF (A4 / A3)
+=========================================================== */
+
+#organigramma-container {
+    width: 100%;
+    margin: 0 auto;
+    background: #f9fafc;
+    border: 1px solid #cbd3e1;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: visible;
+}
+
+/* Nodo */
+.Treant > .node {
+    width: 180px !important;
+    background: #fff;
+    border: 1px solid #4a90e2;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 9px;
+    text-align: center;
+    padding: 4px;
+    line-height: 1.2;
+    transition: transform 0.1s ease;
+    word-wrap: break-word;
+}
+
+    .Treant > .node:hover {
+        transform: scale(1.05);
+        border-color: #1f6feb;
+    }
+
+/* Nome ufficio */
+.Treant .node .node-name {
+    font-weight: 600;
+    color: #0b2545;
+    font-size: 10px;
+    margin-bottom: 3px;
+}
+
+/* Responsabile */
+.Treant .node .node-resp {
+    color: #0047ab;
+    font-size: 9px;
+    font-style: italic;
+}
+
+/* Addetti */
+.Treant .node .node-addetti {
+    color: #007a00;
+    font-size: 8px;
+}
+
+/* Linee di connessione */
+.Treant .connector,
+.Treant .nodeConnector {
+    stroke: #b3bed3;
+    stroke-width: 1px;
+}
+
+/* Layout verticale */
+.Treant {
+    transform-origin: top center;
+    transform: scale(0.85);
+}
+
+    .Treant .level {
+        margin-top: 40px !important;
+    }
+
+/* Sfondo generale */
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #f4f6f8;
+    overflow-x: auto;
+    overflow-y: auto;
+    font-size: 9px;
+}
+
+/* Header opzionale */
+.org-header {
+    text-align: center;
+    font-weight: bold;
+    color: #1f6feb;
+    margin-bottom: 10px;
+    font-size: 11px;
+}
+
+/* ===========================================================
+MODALITÀ DI STAMPA
+=========================================================== */
+@media print {
+    html, body {
+        background: white;
+        overflow: visible;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    #organigramma-container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0 auto;
+        width: 100%;
+        transform: scale(0.8);
+        transform-origin: top center;
+        page-break-inside: avoid;
+    }
+
+    .Treant {
+        transform: scale(0.75);
+        transform-origin: top center;
+    }
+
+        .Treant > .node {
+            page-break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #777;
+        }
+
+    /* Nasconde elementi non necessari in stampa */
+    .no-print, #btnClear, #txtSearch {
+        display: none !important;
+    }
+
+    @page {
+        size: A3 portrait; /* 🔹 per PDF verticale leggibile; cambia in A4 se vuoi */
+        margin: 10mm;
+    }

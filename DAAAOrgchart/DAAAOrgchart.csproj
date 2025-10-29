@@ -66,18 +66,27 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Organigramma.aspx" />
+    <Content Include="bas\Organigramma.aspx" />
+    <Content Include="sol4\Organigramma4.aspx" />
+    <Content Include="Style\Site.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Organigramma.aspx.cs">
+    <Compile Include="bas\Organigramma.aspx.cs">
       <DependentUpon>Organigramma.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Organigramma.aspx.designer.cs">
+    <Compile Include="bas\Organigramma.aspx.designer.cs">
       <DependentUpon>Organigramma.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="sol4\Organigramma4.aspx.cs">
+      <DependentUpon>Organigramma4.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="sol4\Organigramma4.aspx.designer.cs">
+      <DependentUpon>Organigramma4.aspx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
